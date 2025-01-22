@@ -1,19 +1,26 @@
-# Use the official Windows Server Core image with IIS
-FROM mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019
+# Use the official Node.js image for Windows
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
 
-# Install .NET Framework
-RUN powershell -Command \
-    Install-WindowsFeature Web-Server; \
-    Install-WindowsFeature Web-Asp-Net45
+# Set up working directory
+WORKDIR /app
 
-# Set the working directory
-WORKDIR /inetpub/wwwroot
+# Copy package files for installing dependencies
+COPY package*.json ./
 
-# Copy the build files from the React app (make sure to build it!)
-COPY build/ .
+# Install dependencies
+RUN npm install
 
-# Expose port 80
-EXPOSE 80
+# Copy the rest of the application code
+COPY . .
 
-# Start IIS
-CMD ["C:\\ServiceMonitor.exe", "w3svc"]
+# Build the React app
+RUN npm run build
+
+# Install Express for the server
+RUN npm install express
+
+# Expose the port
+EXPOSE 3000
+
+# Command to run the server
+CMD ["node", "server.js"]
